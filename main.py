@@ -36,16 +36,30 @@ def main():
     root = tk.Tk()
     root.title(APP_NAME)
     
-    # Set icon if available
+    # Set icon if available - fix the resources folder name
     try:
-        icon_path = os.path.join(os.path.dirname(__file__), "ressources", "icon.ico")
-        if os.path.exists(icon_path):
-            root.iconbitmap(icon_path)
+        # Check both possible spellings of resources
+        icon_paths = [
+            os.path.join(os.path.dirname(__file__), "resources", "icon.ico"),
+            os.path.join(os.path.dirname(__file__), "ressources", "icon.ico")
+        ]
+        
+        # Use the first icon path that exists
+        for icon_path in icon_paths:
+            if os.path.exists(icon_path):
+                root.iconbitmap(icon_path)
+                logger.info(f"Using icon from: {icon_path}")
+                break
+        else:
+            logger.warning("Icon file not found in resources or ressources folders")
     except Exception as e:
         logger.warning(f"Could not set icon: {e}")
     
     # Apply theme from command line argument if provided, otherwise from config
-    theme = args.theme if args.theme else config_manager.get('DEFAULT', 'theme', 'dark')
+    theme = args.theme
+    if not theme:
+        # Adapt to the new ConfigManager interface
+        theme = config_manager.get('theme', 'dark')
     
     try:
         import sv_ttk

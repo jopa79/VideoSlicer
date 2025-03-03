@@ -1,0 +1,186 @@
+2025-03-03 14:11:13,551 - INFO - Detecting scene changes with threshold 30.0 in first 40.0 seconds...
+2025-03-03 14:11:13,559 - INFO - Will process 1000 frames (max 40.0 seconds at 25.0 fps)
+2025-03-03 14:11:14,429 - INFO - Scene change detected at 3.04 seconds (diff: 71.95)
+2025-03-03 14:11:14,665 - INFO - Processed 100/1000 frames (10.00%)
+2025-03-03 14:11:14,925 - INFO - Scene change detected at 4.92 seconds (diff: 75.95)
+2025-03-03 14:11:15,081 - INFO - Scene change detected at 5.52 seconds (diff: 66.03)
+2025-03-03 14:11:15,447 - INFO - Scene change detected at 6.72 seconds (diff: 45.73)
+2025-03-03 14:11:15,819 - INFO - Processed 200/1000 frames (20.00%)
+2025-03-03 14:11:15,982 - INFO - Scene change detected at 8.52 seconds (diff: 38.58)
+2025-03-03 14:11:16,159 - INFO - Scene change detected at 9.16 seconds (diff: 76.81)
+2025-03-03 14:11:16,511 - INFO - Scene change detected at 10.36 seconds (diff: 88.53)
+2025-03-03 14:11:16,794 - INFO - Scene change detected at 11.28 seconds (diff: 100.55)
+2025-03-03 14:11:16,994 - INFO - Processed 300/1000 frames (30.00%)
+2025-03-03 14:11:17,279 - INFO - Scene change detected at 12.96 seconds (diff: 112.87)
+2025-03-03 14:11:17,974 - INFO - Scene change detected at 15.40 seconds (diff: 74.77)
+2025-03-03 14:11:18,135 - INFO - Processed 400/1000 frames (40.00%)
+2025-03-03 14:11:18,804 - INFO - Scene change detected at 18.28 seconds (diff: 44.60)
+2025-03-03 14:11:19,308 - INFO - Processed 500/1000 frames (50.00%)
+2025-03-03 14:11:20,589 - INFO - Processed 600/1000 frames (60.00%)
+2025-03-03 14:11:21,158 - INFO - Scene change detected at 25.76 seconds (diff: 64.34)
+2025-03-03 14:11:21,854 - INFO - Processed 700/1000 frames (70.00%)
+2025-03-03 14:11:23,171 - INFO - Processed 800/1000 frames (80.00%)
+2025-03-03 14:11:24,519 - INFO - Processed 900/1000 frames (90.00%)
+2025-03-03 14:11:25,078 - INFO - Scene change detected at 37.60 seconds (diff: 81.16)
+2025-03-03 14:11:25,488 - INFO - Scene change detected at 38.84 seconds (diff: 81.43)
+2025-03-03 14:11:25,882 - INFO - Processed 1000/1000 frames (100.00%)
+2025-03-03 14:11:25,896 - INFO - Scene detection complete. Found 14 scene changes in first 40.0 seconds.
+2025-03-03 14:11:25,964 - INFO - Extracting 3 sequences of 10 seconds each...
+2025-03-03 14:11:25,986 - INFO - Running FFmpeg command: ffmpeg -y -i C:/Users/JoPa/Videos/Andor_S2.mp4 -ss 3.04 -t 10 -c:v prores_ks -profile:v 2 -vendor ap10 -pix_fmt yuv422p10le -c:a copy -progress C:\Users\JoPa\AppData\Local\Temp\tmpejv37vjv.txt C:/Users/JoPa/Videos\Andor_S2_sequences\Andor_S2_seq_1.mov
+2025-03-03 14:11:56,693 - WARNING - FFmpeg process timed out
+2025-03-03 14:11:56,697 - ERROR - FFmpeg process failed with return code 1
+2025-03-03 14:11:56,697 - ERROR - Stderr: ffmpeg version 7.0.2-full_build-www.gyan.dev Copyright (c) 2000-2024 the FFmpeg developers
+  built with gcc 13.2.0 (Rev5, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-librav1e --enable-libsvtav1 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint
+  libavutil      59.  8.100 / 59.  8.100
+  libavcodec     61.  3.100 / 61.  3.100
+  libavformat    61.  1.100 / 61.  1.100
+  libavdevice    61.  1.100 / 61.  1.100
+  libavfilter    10.  1.100 / 10.  1.100
+  libswscale      8.  1.100 /  8.  1.100
+  libswresample   5.  1.100 /  5.  1.100
+  libpostproc    58.  1.100 / 58.  1.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'C:/Users/JoPa/Videos/Andor_S2.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2mp41
+    encoder         : Lavf61.1.100
+  Duration: 00:01:47.93, start: 0.000000, bitrate: 2269 kb/s
+  Stream #0:0[0x1](und): Video: vp9 (Profile 0) (vp09 / 0x39307076), yuv420p(tv, bt709), 1920x960, 2136 kb/s, 25 fps, 25 tbr, 16k tbn (default)
+      Metadata:
+        handler_name    : ISO Media file produced by Google Inc. Created on: 02/25/2025.
+        vendor_id       : [0][0][0][0]
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+      Metadata:
+        handler_name    : SoundHandler
+        vendor_id       : [0][0][0][0]
+Stream mapping:
+  Stream #0:0 -> #0:0 (vp9 (native) -> prores (prores_ks))
+  Stream #0:1 -> #0:1 (copy)
+Press [q] to stop, [?] for help
+Output #0, mov, to 'C:/Users/JoPa/Videos\Andor_S2_sequences\Andor_S2_seq_1.mov':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2mp41
+    encoder         : Lavf61.1.100
+  Stream #0:0(und): Video: prores (Standard) (apcn / 0x6E637061), yuv422p10le(tv, bt709, progressive), 1920x960, q=2-31, 200 kb/s, 25 fps, 12800 tbn (default)
+      Metadata:
+        handler_name    : ISO Media file produced by Google Inc. Created on: 02/25/2025.
+        vendor_id       : [0][0][0][0]
+        encoder         : Lavc61.3.100 prores_ks
+  Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+      Metadata:
+        handler_name    : SoundHandler
+        vendor_id       : [0][0][0][0]
+frame=    0 fps=0.0 q=0.0 size=       0KiB time=N/A bitrate=N/A speed=N/A    
+frame=   35 fps= 34 q=-0.0 size=   16128KiB time=00:00:01.40 bitrate=94372.0kbits/s speed=1.37x    
+frame=   82 fps= 53 q=-0.0 size=   36864KiB time=00:00:03.28 bitrate=92070.2kbits/s speed=2.13x    
+
+2025-03-03 14:11:56,703 - ERROR - Failed to save sequence 1
+2025-03-03 14:11:56,724 - INFO - Running FFmpeg command: ffmpeg -y -i C:/Users/JoPa/Videos/Andor_S2.mp4 -ss 13.04 -t 10 -c:v prores_ks -profile:v 2 -vendor ap10 -pix_fmt yuv422p10le -c:a copy -progress C:\Users\JoPa\AppData\Local\Temp\tmpg1ydlzl0.txt C:/Users/JoPa/Videos\Andor_S2_sequences\Andor_S2_seq_2.mov
+2025-03-03 14:12:28,019 - WARNING - FFmpeg process timed out
+2025-03-03 14:12:28,024 - ERROR - FFmpeg process failed with return code 1
+2025-03-03 14:12:28,025 - ERROR - Stderr: ffmpeg version 7.0.2-full_build-www.gyan.dev Copyright (c) 2000-2024 the FFmpeg developers
+  built with gcc 13.2.0 (Rev5, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-librav1e --enable-libsvtav1 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint
+  libavutil      59.  8.100 / 59.  8.100
+  libavcodec     61.  3.100 / 61.  3.100
+  libavformat    61.  1.100 / 61.  1.100
+  libavdevice    61.  1.100 / 61.  1.100
+  libavfilter    10.  1.100 / 10.  1.100
+  libswscale      8.  1.100 /  8.  1.100
+  libswresample   5.  1.100 /  5.  1.100
+  libpostproc    58.  1.100 / 58.  1.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'C:/Users/JoPa/Videos/Andor_S2.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2mp41
+    encoder         : Lavf61.1.100
+  Duration: 00:01:47.93, start: 0.000000, bitrate: 2269 kb/s
+  Stream #0:0[0x1](und): Video: vp9 (Profile 0) (vp09 / 0x39307076), yuv420p(tv, bt709), 1920x960, 2136 kb/s, 25 fps, 25 tbr, 16k tbn (default)
+      Metadata:
+        handler_name    : ISO Media file produced by Google Inc. Created on: 02/25/2025.
+        vendor_id       : [0][0][0][0]
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+      Metadata:
+        handler_name    : SoundHandler
+        vendor_id       : [0][0][0][0]
+Stream mapping:
+  Stream #0:0 -> #0:0 (vp9 (native) -> prores (prores_ks))
+  Stream #0:1 -> #0:1 (copy)
+Press [q] to stop, [?] for help
+Output #0, mov, to 'C:/Users/JoPa/Videos\Andor_S2_sequences\Andor_S2_seq_2.mov':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2mp41
+    encoder         : Lavf61.1.100
+  Stream #0:0(und): Video: prores (Standard) (apcn / 0x6E637061), yuv422p10le(tv, bt709, progressive), 1920x960, q=2-31, 200 kb/s, 25 fps, 12800 tbn (default)
+      Metadata:
+        handler_name    : ISO Media file produced by Google Inc. Created on: 02/25/2025.
+        vendor_id       : [0][0][0][0]
+        encoder         : Lavc61.3.100 prores_ks
+  Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+      Metadata:
+        handler_name    : SoundHandler
+        vendor_id       : [0][0][0][0]
+frame=   15 fps= 14 q=-0.0 size=    5632KiB time=00:00:00.60 bitrate=76896.1kbits/s speed=0.573x    
+frame=   56 fps= 35 q=-0.0 size=   21248KiB time=00:00:02.24 bitrate=77707.1kbits/s speed=1.42x    
+
+2025-03-03 14:12:28,030 - ERROR - Failed to save sequence 2
+2025-03-03 14:12:28,051 - INFO - Running FFmpeg command: ffmpeg -y -i C:/Users/JoPa/Videos/Andor_S2.mp4 -ss 23.04 -t 10 -c:v prores_ks -profile:v 2 -vendor ap10 -pix_fmt yuv422p10le -c:a copy -progress C:\Users\JoPa\AppData\Local\Temp\tmp4410j599.txt C:/Users/JoPa/Videos\Andor_S2_sequences\Andor_S2_seq_3.mov
+2025-03-03 14:12:59,796 - WARNING - FFmpeg process timed out
+2025-03-03 14:12:59,800 - ERROR - FFmpeg process failed with return code 1
+2025-03-03 14:12:59,800 - ERROR - Stderr: ffmpeg version 7.0.2-full_build-www.gyan.dev Copyright (c) 2000-2024 the FFmpeg developers
+  built with gcc 13.2.0 (Rev5, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-librav1e --enable-libsvtav1 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint
+  libavutil      59.  8.100 / 59.  8.100
+  libavcodec     61.  3.100 / 61.  3.100
+  libavformat    61.  1.100 / 61.  1.100
+  libavdevice    61.  1.100 / 61.  1.100
+  libavfilter    10.  1.100 / 10.  1.100
+  libswscale      8.  1.100 /  8.  1.100
+  libswresample   5.  1.100 /  5.  1.100
+  libpostproc    58.  1.100 / 58.  1.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'C:/Users/JoPa/Videos/Andor_S2.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2mp41
+    encoder         : Lavf61.1.100
+  Duration: 00:01:47.93, start: 0.000000, bitrate: 2269 kb/s
+  Stream #0:0[0x1](und): Video: vp9 (Profile 0) (vp09 / 0x39307076), yuv420p(tv, bt709), 1920x960, 2136 kb/s, 25 fps, 25 tbr, 16k tbn (default)
+      Metadata:
+        handler_name    : ISO Media file produced by Google Inc. Created on: 02/25/2025.
+        vendor_id       : [0][0][0][0]
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+      Metadata:
+        handler_name    : SoundHandler
+        vendor_id       : [0][0][0][0]
+Stream mapping:
+  Stream #0:0 -> #0:0 (vp9 (native) -> prores (prores_ks))
+  Stream #0:1 -> #0:1 (copy)
+Press [q] to stop, [?] for help
+Output #0, mov, to 'C:/Users/JoPa/Videos\Andor_S2_sequences\Andor_S2_seq_3.mov':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2mp41
+    encoder         : Lavf61.1.100
+  Stream #0:0(und): Video: prores (Standard) (apcn / 0x6E637061), yuv422p10le(tv, bt709, progressive), 1920x960, q=2-31, 200 kb/s, 25 fps, 12800 tbn (default)
+      Metadata:
+        handler_name    : ISO Media file produced by Google Inc. Created on: 02/25/2025.
+        vendor_id       : [0][0][0][0]
+        encoder         : Lavc61.3.100 prores_ks
+  Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+      Metadata:
+        handler_name    : SoundHandler
+        vendor_id       : [0][0][0][0]
+frame=   11 fps=7.1 q=-0.0 size=    3840KiB time=00:00:00.44 bitrate=71494.5kbits/s speed=0.285x    
+frame=   48 fps= 23 q=-0.0 size=    8704KiB time=00:00:01.80 bitrate=39613.0kbits/s speed=0.872x    
+
+2025-03-03 14:12:59,805 - ERROR - Failed to save sequence 3
+2025-03-03 14:12:59,814 - INFO - Successfully extracted 0 sequences

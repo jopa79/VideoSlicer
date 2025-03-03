@@ -5,6 +5,7 @@ import numpy as np
 import logging
 import subprocess
 import tempfile
+import time
 from datetime import datetime
 from utils import setup_logger, format_time
 
@@ -347,9 +348,9 @@ class VideoProcessor:
             start_time_str = format_time(start_time)
             
             # Create a temporary file for FFmpeg output
-            temp_file = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
-            temp_file.close()
-            temp_file_path = temp_file.name
+            progress_file = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
+            progress_file.close()
+            progress_file_path = progress_file.name
             
             # Get video dimensions
             cap = cv2.VideoCapture(input_path)
@@ -365,7 +366,8 @@ class VideoProcessor:
                 
             # Construct FFmpeg command for ProRes 422 with audio copy
             cmd = [
-                "ffmpeg", "-y",
+                "ffmpeg",
+                "-y",
                 "-i", input_path,
                 "-ss", str(start_time),
                 "-t", str(duration),
@@ -382,7 +384,7 @@ class VideoProcessor:
                 "-vendor", "ap10",
                 "-pix_fmt", "yuv422p10le",
                 "-c:a", "copy",  # Copy audio stream
-                "-progress", temp_file_path,  # Write progress to file
+                "-progress", progress_file_path,  # Write progress to file
                 output_path
             ])
             
@@ -390,21 +392,14 @@ class VideoProcessor:
             self.logger.info(f"Running FFmpeg command: {' '.join(cmd)}")
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             
-            # Monitor progress
-            if progress_callback:
-                self._monitor_ffmpeg_progress(process, temp_file_path, progress_callback)
-            else:
-                # Wait for process to complete
-                stdout, stderr = process.communicate()
-                if process.returncode != 0:
-                    self.logger.error(f"FFmpeg error: {stderr}")
-                    return False
+            # Monitor progress with improved method
+            success = self._monitor_ffmpeg_progress(
+                process, 
+                progress_file_path, 
+                progress_callback
+            )
             
-            # Clean up temporary file
-            if os.path.exists(temp_file_path):
-                os.unlink(temp_file_path)
-            
-            return True
+            return success
         except Exception as e:
             self.logger.error(f"Error extracting sequence: {str(e)}")
             return False
@@ -426,13 +421,10 @@ class VideoProcessor:
             bool: True if successful, False otherwise
         """
         try:
-            # Format start time for FFmpeg
-            start_time_str = format_time(start_time)
-            
             # Create a temporary file for FFmpeg output
-            temp_file = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
-            temp_file.close()
-            temp_file_path = temp_file.name
+            progress_file = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
+            progress_file.close()
+            progress_file_path = progress_file.name
             
             # Get video dimensions
             cap = cv2.VideoCapture(input_path)
@@ -479,7 +471,7 @@ class VideoProcessor:
             cmd.extend([
                 "-c:a", "aac",      # Use AAC audio codec
                 "-b:a", "128k",     # Audio bitrate
-                "-progress", temp_file_path,  # Write progress to file
+                "-progress", progress_file_path,  # Write progress to file
                 output_path
             ])
             
@@ -487,21 +479,14 @@ class VideoProcessor:
             self.logger.info(f"Running FFmpeg command: {' '.join(cmd)}")
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             
-            # Monitor progress
-            if progress_callback:
-                self._monitor_ffmpeg_progress(process, temp_file_path, progress_callback)
-            else:
-                # Wait for process to complete
-                stdout, stderr = process.communicate()
-                if process.returncode != 0:
-                    self.logger.error(f"FFmpeg error: {stderr}")
-                    return False
+            # Monitor progress with improved method
+            success = self._monitor_ffmpeg_progress(
+                process, 
+                progress_file_path, 
+                progress_callback
+            )
             
-            # Clean up temporary file
-            if os.path.exists(temp_file_path):
-                os.unlink(temp_file_path)
-            
-            return True
+            return success
         except Exception as e:
             self.logger.error(f"Error extracting sequence: {str(e)}")
             return False
@@ -513,9 +498,13 @@ class VideoProcessor:
             process: Subprocess running FFmpeg
             progress_file: Path to the progress file
             progress_callback: Callback function for progress updates
+        
+        Returns:
+            bool: True if successful, False otherwise
         """
         import time
-        
+        import os
+
         try:
             # Wait for progress file to be created
             while not os.path.exists(progress_file) or os.path.getsize(progress_file) == 0:
@@ -524,51 +513,82 @@ class VideoProcessor:
                 if process.poll() is not None:
                     break
             
-            # Read progress
+            # Reset tracking variables
             duration = None
             last_position = 0
+            start_time = time.time()
+            timeout = 30  # 30 seconds timeout for processing
             
-            while process.poll() is None:
-                if os.path.exists(progress_file):
-                    with open(progress_file, 'r') as f:
-                        content = f.read()
+            try:
+                while process.poll() is None:
+                    # Check for timeout
+                    if time.time() - start_time > timeout:
+                        self.logger.warning("FFmpeg process timed out")
+                        process.terminate()
+                        break
                     
-                    # Parse progress information
-                    for line in content.splitlines():
-                        if line.startswith('out_time_ms='):
-                            try:
-                                time_ms = int(line.split('=')[1])
-                                position = time_ms / 1000000  # Convert to seconds
-                                last_position = position
-                            except (ValueError, IndexError):
-                                pass
-                        elif line.startswith('duration='):
-                            try:
-                                duration = float(line.split('=')[1])
-                            except (ValueError, IndexError):
-                                pass
+                    if os.path.exists(progress_file):
+                        with open(progress_file, 'r') as f:
+                            content = f.read()
+                        
+                        # Parse progress information
+                        for line in content.splitlines():
+                            if line.startswith('out_time_ms='):
+                                try:
+                                    time_ms = int(line.split('=')[1])
+                                    position = time_ms / 1000000  # Convert to seconds
+                                    last_position = position
+                                except (ValueError, IndexError):
+                                    pass
+                            elif line.startswith('duration='):
+                                try:
+                                    duration = float(line.split('=')[1])
+                                except (ValueError, IndexError):
+                                    pass
+                        
+                        # Calculate and report progress
+                        if duration and duration > 0:
+                            percent = min(100, (last_position / duration) * 100)
+                            if progress_callback:
+                                progress_callback(percent)
                     
-                    # Calculate and report progress
-                    if duration and duration > 0:
-                        percent = min(100, (last_position / duration) * 100)
-                        progress_callback(percent)
+                    time.sleep(0.5)
                 
-                time.sleep(0.5)
+                # Ensure process is terminated
+                if process.poll() is None:
+                    process.terminate()
+                    try:
+                        process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        self.logger.warning("Force killing FFmpeg process")
+                        process.kill()
+                
+                # Final progress update
+                if progress_callback:
+                    progress_callback(100)
+                
+                # Check process result
+                if process.returncode and process.returncode != 0:
+                    # Capture and log error output
+                    stdout, stderr = process.communicate()
+                    self.logger.error(f"FFmpeg process failed with return code {process.returncode}")
+                    self.logger.error(f"Stderr: {stderr}")
+                    return False
+                
+                return True
             
-            # Final progress update
-            progress_callback(100)
-            
-            # Check process result
-            if process.returncode != 0:
-                _, stderr = process.communicate()
-                self.logger.error(f"FFmpeg error: {stderr}")
-                return False
-            
-            return True
+            finally:
+                # Cleanup: remove progress file
+                if os.path.exists(progress_file):
+                    try:
+                        os.unlink(progress_file)
+                    except Exception as e:
+                        self.logger.warning(f"Could not remove progress file: {e}")
+        
         except Exception as e:
-            self.logger.error(f"Error monitoring progress: {str(e)}")
+            self.logger.error(f"Error monitoring FFmpeg progress: {str(e)}")
             return False
-            
+    
     def get_scene_thumbnails(self, video_path, scene_changes, size=(320, 180)):
         """Get thumbnails for each scene change.
         

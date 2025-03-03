@@ -81,11 +81,14 @@ class VideoSlicerGUI:
         
     def check_ffmpeg(self):
         """Check if FFmpeg is installed and show a message if not."""
-        if not check_ffmpeg_installed():
+        ffmpeg_available, error_message, codec_support = self.processor.check_ffmpeg_available()
+        
+        if not ffmpeg_available:
             messagebox.showerror(
                 "FFmpeg Not Found", 
-                "FFmpeg is required but not found on your system. Please install FFmpeg to use this application."
+                f"FFmpeg is required but not properly configured: {error_message}"
             )
+            
             # Add a download link
             result = messagebox.askyesno(
                 "Download FFmpeg",
@@ -93,6 +96,39 @@ class VideoSlicerGUI:
             )
             if result:
                 webbrowser.open("https://ffmpeg.org/download.html")
+            return False
+        
+        # Check codec support and update UI accordingly
+        if not codec_support['prores'] and self.output_format_var.get() == 'prores':
+            messagebox.showwarning(
+                "Codec Support",
+                "ProRes encoding is not supported by your FFmpeg installation. "
+                "The application will fall back to H.264 for encoding."
+            )
+            self.output_format_var.set('h264')
+        
+        # Update available formats in UI based on codec support
+        formats = []
+        if codec_support['prores']:
+            formats.append('prores')
+        if codec_support['h264']:
+            formats.append('h264')
+        if codec_support['h265']:
+            formats.append('h265')
+        
+        # Find and update the format combobox
+        for child in self.main_container.winfo_children():
+            if isinstance(child, ttk.Frame):
+                for subchild in child.winfo_children():
+                    if isinstance(subchild, ttk.Labelframe) and subchild.cget('text') == "Parameters":
+                        for widget in subchild.winfo_descendants():
+                            if isinstance(widget, ttk.Combobox) and widget.cget('values') and 'prores' in widget.cget('values'):
+                                widget.config(values=formats)
+                                if self.output_format_var.get() not in formats and formats:
+                                    self.output_format_var.set(formats[0])
+                                break
+        
+        return True
         
     def create_widgets(self):
         """Create the GUI widgets with a modern design."""
@@ -440,17 +476,30 @@ class VideoSlicerGUI:
     def update_format_description(self, event):
         """Update the description when format is changed."""
         selected_format = self.output_format_var.get()
-        if selected_format in OUTPUT_FORMATS:
+        
+        if selected_format == 'h264':
+            self.description_var.set("MP4 (H.264) - Standard web and device compatibility")
+        elif selected_format == 'h265':
+            self.description_var.set("MP4 (H.265) - Better compression, newer devices only")
+        elif selected_format in OUTPUT_FORMATS:
             desc = OUTPUT_FORMATS[selected_format]['description']
             self.description_var.set(f"Format: {desc}")
-            self.update_quality_description(None)
+        
+        self.update_quality_description(None)
         
     def update_quality_description(self, event):
         """Update the description when quality is changed."""
         selected_quality = self.quality_var.get()
         selected_format = self.output_format_var.get()
         
-        if selected_format in OUTPUT_FORMATS and selected_quality in QUALITY_SETTINGS:
+        if selected_format in ('h264', 'h265'):
+            if selected_quality == 'low':
+                self.description_var.set(f"{selected_format.upper()} - Fast encoding, lower quality")
+            elif selected_quality == 'medium':
+                self.description_var.set(f"{selected_format.upper()} - Balanced quality and size")
+            elif selected_quality == 'high':
+                self.description_var.set(f"{selected_format.upper()} - High quality, larger file size")
+        elif selected_format in OUTPUT_FORMATS and selected_quality in QUALITY_SETTINGS:
             format_desc = OUTPUT_FORMATS[selected_format]['description']
             
             if 'profiles' in OUTPUT_FORMATS[selected_format] and selected_quality in OUTPUT_FORMATS[selected_format]['profiles']:

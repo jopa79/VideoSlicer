@@ -23,8 +23,14 @@ class VideoProcessor:
         """Check if FFmpeg is available and has the required codecs.
         
         Returns:
-            tuple: (bool, str) - (is_available, error_message)
+            tuple: (bool, str, dict) - (is_available, error_message, codec_support)
         """
+        codec_support = {
+            'prores': False,
+            'h264': False,
+            'h265': False,
+        }
+        
         try:
             # Check if FFmpeg is installed
             process = subprocess.run(
@@ -35,22 +41,44 @@ class VideoProcessor:
             )
             
             if process.returncode != 0:
-                return False, "FFmpeg is not installed or not in PATH"
+                return False, "FFmpeg is not installed or not in PATH", codec_support
                 
-            # Check for ProRes support
-            process = subprocess.run(
+            # Check for codec support
+            encoders_process = subprocess.run(
                 ["ffmpeg", "-encoders"], 
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.PIPE,
                 text=True
             )
             
-            if "prores_ks" not in process.stdout:
-                return False, "FFmpeg is installed but doesn't support ProRes encoding"
+            if encoders_process.returncode != 0:
+                return False, "Error checking FFmpeg encoders", codec_support
+            
+            # Check for ProRes support (could be prores or prores_ks depending on ffmpeg version)
+            if "prores" in encoders_process.stdout or "prores_ks" in encoders_process.stdout:
+                codec_support['prores'] = True
                 
-            return True, ""
+            # Check for H.264 support
+            if "libx264" in encoders_process.stdout:
+                codec_support['h264'] = True
+                
+            # Check for H.265 support
+            if "libx265" in encoders_process.stdout:
+                codec_support['h265'] = True
+                
+            # Base ffmpeg availability on whether at least one codec is supported
+            is_available = any(codec_support.values())
+            
+            if not is_available:
+                return False, "FFmpeg is installed but no supported video codecs found", codec_support
+            
+            # If ProRes is specifically requested but not available, give a more detailed message
+            if not codec_support['prores']:
+                self.logger.warning("FFmpeg is installed but doesn't support ProRes encoding")
+                
+            return True, "", codec_support
         except Exception as e:
-            return False, f"Error checking FFmpeg: {str(e)}"
+            return False, f"Error checking FFmpeg: {str(e)}", codec_support
         
     def detect_scene_changes(self, video_path, threshold=30.0, max_duration=40.0, progress_callback=None):
         """Detect scene changes in the video.
@@ -147,7 +175,7 @@ class VideoProcessor:
             scene_changes: List of timestamps where scene changes occur
             sequence_length: Length of each sequence in seconds
             num_sequences: Number of consecutive sequences to extract
-            output_format: Output format ('prores' for ProRes 422)
+            output_format: Output format ('prores' for ProRes 422, 'h264' for MP4)
             quality: Quality setting ('low', 'medium', 'high')
             progress_callback: Optional callback function for progress updates
             
@@ -155,10 +183,23 @@ class VideoProcessor:
             List of paths to the extracted sequences
         """
         # Check if FFmpeg is available with required codecs
-        ffmpeg_available, error_message = self.check_ffmpeg_available()
+        ffmpeg_available, error_message, codec_support = self.check_ffmpeg_available()
         if not ffmpeg_available:
             self.logger.error(f"FFmpeg error: {error_message}")
             raise RuntimeError(f"FFmpeg error: {error_message}")
+        
+        # If the requested format isn't supported, fall back to an alternative
+        if output_format not in codec_support or not codec_support[output_format]:
+            original_format = output_format
+            # Try to find a supported format to fall back to
+            for format_name, is_supported in codec_support.items():
+                if is_supported:
+                    output_format = format_name
+                    self.logger.warning(f"Requested format '{original_format}' not supported. "
+                                      f"Falling back to '{output_format}'")
+                    break
+            else:
+                raise RuntimeError(f"No supported video codecs available in FFmpeg")
         
         self.logger.info(f"Extracting {num_sequences} sequences of {sequence_length} seconds each...")
         
@@ -200,13 +241,40 @@ class VideoProcessor:
         # Select the first scene change
         start_time = valid_scene_changes[0]
         
-        # Quality settings for ProRes 422
-        prores_profiles = {
-            "low": "0",      # ProRes 422 Proxy
-            "medium": "2",   # ProRes 422 LT
-            "high": "3"      # ProRes 422 HQ
-        }
-        profile = prores_profiles.get(quality.lower(), "2")  # Default to ProRes 422 LT
+        # Set up output parameters based on format
+        if output_format == 'prores':
+            extension = '.mov'
+            # Quality settings for ProRes 422
+            profiles = {
+                "low": "0",      # ProRes 422 Proxy
+                "medium": "2",   # ProRes 422 LT
+                "high": "3"      # ProRes 422 HQ
+            }
+            profile = profiles.get(quality.lower(), "2")  # Default to ProRes 422 LT
+        elif output_format in ('h264', 'mp4'):
+            extension = '.mp4'
+            # CRF values for H.264 (lower = higher quality)
+            profiles = {
+                "low": "28",     # Lower quality
+                "medium": "23",  # Medium quality
+                "high": "18"     # High quality
+            }
+            profile = profiles.get(quality.lower(), "23")  # Default to medium
+        elif output_format == 'h265':
+            extension = '.mp4'
+            # CRF values for H.265 (lower = higher quality)
+            profiles = {
+                "low": "28",     # Lower quality
+                "medium": "23",  # Medium quality
+                "high": "18"     # High quality
+            }
+            profile = profiles.get(quality.lower(), "23")  # Default to medium
+        else:
+            # Fallback to H.264
+            self.logger.warning(f"Unknown format '{output_format}'. Falling back to H.264")
+            output_format = 'h264'
+            extension = '.mp4'
+            profile = "23"  # Medium quality
         
         # Get base filename without extension
         base_filename = os.path.splitext(os.path.basename(video_path))[0]
@@ -222,18 +290,29 @@ class VideoProcessor:
                 continue
             
             # Define output path with input filename as base
-            output_filename = f"{base_filename}_seq_{i+1}.mov"
+            output_filename = f"{base_filename}_seq_{i+1}{extension}"
             output_path = os.path.join(output_folder, output_filename)
             
-            # Extract the sequence using FFmpeg with ProRes 422 codec and copy audio
-            success = self._extract_prores_sequence(
-                video_path, 
-                output_path, 
-                sequence_start, 
-                sequence_length, 
-                profile,
-                progress_callback
-            )
+            # Extract the sequence using FFmpeg with appropriate codec
+            if output_format == 'prores':
+                success = self._extract_prores_sequence(
+                    video_path, 
+                    output_path, 
+                    sequence_start, 
+                    sequence_length, 
+                    profile,
+                    progress_callback
+                )
+            else:  # h264 or h265
+                success = self._extract_h26x_sequence(
+                    video_path, 
+                    output_path, 
+                    sequence_start, 
+                    sequence_length,
+                    output_format,  # 'h264' or 'h265'
+                    profile,
+                    progress_callback
+                )
             
             if success:
                 output_paths.append(output_path)
@@ -303,6 +382,103 @@ class VideoProcessor:
                 "-vendor", "ap10",
                 "-pix_fmt", "yuv422p10le",
                 "-c:a", "copy",  # Copy audio stream
+                "-progress", temp_file_path,  # Write progress to file
+                output_path
+            ])
+            
+            # Run FFmpeg
+            self.logger.info(f"Running FFmpeg command: {' '.join(cmd)}")
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            
+            # Monitor progress
+            if progress_callback:
+                self._monitor_ffmpeg_progress(process, temp_file_path, progress_callback)
+            else:
+                # Wait for process to complete
+                stdout, stderr = process.communicate()
+                if process.returncode != 0:
+                    self.logger.error(f"FFmpeg error: {stderr}")
+                    return False
+            
+            # Clean up temporary file
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+            
+            return True
+        except Exception as e:
+            self.logger.error(f"Error extracting sequence: {str(e)}")
+            return False
+            
+    def _extract_h26x_sequence(self, input_path, output_path, start_time, duration, 
+                             codec='h264', quality="23", progress_callback=None):
+        """Extract a sequence using FFmpeg with H.264/H.265 codec.
+        
+        Args:
+            input_path: Path to the input video
+            output_path: Path to save the output video
+            start_time: Start time in seconds
+            duration: Duration in seconds
+            codec: Video codec ('h264' or 'h265')
+            quality: CRF value (lower = higher quality)
+            progress_callback: Optional callback function for progress updates
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Format start time for FFmpeg
+            start_time_str = format_time(start_time)
+            
+            # Create a temporary file for FFmpeg output
+            temp_file = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
+            temp_file.close()
+            temp_file_path = temp_file.name
+            
+            # Get video dimensions
+            cap = cv2.VideoCapture(input_path)
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            cap.release()
+            
+            # Check if we need to scale down to HD (1920x1080)
+            scale_filter = ""
+            if width > 1920 or height > 1080:
+                self.logger.info(f"Scaling down from {width}x{height} to HD (1920x1080)")
+                scale_filter = "-vf scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2"
+                
+            # Construct FFmpeg command
+            cmd = [
+                "ffmpeg", "-y",
+                "-i", input_path,
+                "-ss", str(start_time),
+                "-t", str(duration),
+            ]
+            
+            # Add scale filter if needed
+            if scale_filter:
+                cmd.extend(scale_filter.split())
+                
+            # Select the right codec
+            if codec == 'h265':
+                codec_params = [
+                    "-c:v", "libx265",
+                    "-crf", quality,
+                    "-preset", "medium",
+                ]
+            else:  # Default to h264
+                codec_params = [
+                    "-c:v", "libx264",
+                    "-crf", quality,
+                    "-preset", "medium",
+                    "-pix_fmt", "yuv420p",
+                ]
+                
+            cmd.extend(codec_params)
+            
+            # Add audio and progress tracking
+            cmd.extend([
+                "-c:a", "aac",      # Use AAC audio codec
+                "-b:a", "128k",     # Audio bitrate
                 "-progress", temp_file_path,  # Write progress to file
                 output_path
             ])

@@ -7,11 +7,138 @@ import logging
 import time
 import cv2
 from PIL import Image
+import zipfile
+import tarfile
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
+def get_ffmpeg_directory():
+    """Get the directory where FFmpeg should be stored locally.
+    
+    Returns:
+        Path: Directory path for local FFmpeg
+    """
+    # Store FFmpeg in a 'bin' subdirectory of the application
+    return Path(os.path.dirname(os.path.abspath(__file__))) / "bin"
+
+def get_ffmpeg_executable():
+    """Get the path to the FFmpeg executable.
+    
+    Returns:
+        Path: Path to the FFmpeg executable
+    """
+    ffmpeg_dir = get_ffmpeg_directory()
+    system = platform.system()
+    
+    if system == "Windows":
+        return ffmpeg_dir / "ffmpeg.exe"
+    else:
+        return ffmpeg_dir / "ffmpeg"
+
 def check_ffmpeg_installed():
-    """Check if FFmpeg is installed and functional."""
+    """Check if FFmpeg is installed locally in the application directory.
+    
+    Returns:
+        bool: True if FFmpeg is installed locally, False otherwise
+    """
+    ffmpeg_path = get_ffmpeg_executable()
+    return ffmpeg_path.exists()
+
+def download_ffmpeg():
+    """Download and install FFmpeg locally for the current platform.
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Create the bin directory if it doesn't exist
+    ffmpeg_dir = get_ffmpeg_directory()
+    ffmpeg_dir.mkdir(exist_ok=True, parents=True)
+    
+    # Get the appropriate download URL for the current platform
+    system = platform.system()
+    
+    if system == "Windows":
+        # Windows - use a static build from gyan.dev
+        download_url = "https://github.com/GyanD/codexffmpeg/releases/download/6.1.1/ffmpeg-6.1.1-essentials_build.zip"
+        download_path = ffmpeg_dir / "ffmpeg.zip"
+    elif system == "Darwin":  # macOS
+        machine = platform.machine()
+        if machine == "arm64":  # Apple Silicon
+            download_url = "https://evermeet.cx/ffmpeg/getrelease/zip/ffmpeg/6.1.1"
+        else:  # Intel Mac
+            download_url = "https://evermeet.cx/ffmpeg/getrelease/zip/ffmpeg/6.1.1"
+        download_path = ffmpeg_dir / "ffmpeg.zip"
+    else:  # Linux
+        # Linux - use static build
+        download_url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
+        download_path = ffmpeg_dir / "ffmpeg.tar.xz"
+    
+    try:
+        # Download FFmpeg
+        logger.info(f"Downloading FFmpeg from {download_url}")
+        urllib.request.urlretrieve(download_url, download_path)
+        
+        # Extract the downloaded archive
+        if system == "Windows":
+            with zipfile.ZipFile(download_path, 'r') as zip_ref:
+                zip_ref.extractall(ffmpeg_dir)
+                
+            # Find the extracted ffmpeg.exe and move it to the bin directory
+            for root, dirs, files in os.walk(ffmpeg_dir):
+                if "ffmpeg.exe" in files:
+                    shutil.move(os.path.join(root, "ffmpeg.exe"), ffmpeg_dir / "ffmpeg.exe")
+                    break
+                    
+        elif system == "Darwin":  # macOS
+            with zipfile.ZipFile(download_path, 'r') as zip_ref:
+                zip_ref.extractall(ffmpeg_dir)
+                
+            # Make sure it's executable
+            os.chmod(ffmpeg_dir / "ffmpeg", 0o755)
+            
+        else:  # Linux
+            with tarfile.open(download_path, 'r:xz') as tar_ref:
+                tar_ref.extractall(ffmpeg_dir)
+                
+            # Find the extracted ffmpeg and move it to the bin directory
+            for root, dirs, files in os.walk(ffmpeg_dir):
+                if "ffmpeg" in files and not root.endswith("bin"):
+                    shutil.move(os.path.join(root, "ffmpeg"), ffmpeg_dir / "ffmpeg")
+                    break
+                    
+            # Make sure it's executable
+            os.chmod(ffmpeg_dir / "ffmpeg", 0o755)
+        
+        # Clean up the downloaded archive
+        download_path.unlink()
+        
+        logger.info(f"FFmpeg installed successfully to {ffmpeg_dir}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error downloading FFmpeg: {e}")
+        return False
+
+def run_ffmpeg_command(cmd):
+    """Run an FFmpeg command using the local installation.
+    
+    Args:
+        cmd: Command list, where the first element is usually 'ffmpeg'
+        
+    Returns:
+        subprocess.CompletedProcess: Result of the command
+    """
+    # Replace the 'ffmpeg' command with the path to our local executable
+    if cmd[0] == "ffmpeg":
+        cmd[0] = str(get_ffmpeg_executable())
+    
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+def check_ffmpeg_installed_system():
+    """Check if FFmpeg is installed and functional on the system (legacy function)."""
     try:
         if platform.system() == "Windows":
             cmd = ["where", "ffmpeg"]
@@ -27,22 +154,6 @@ def check_ffmpeg_installed():
     except FileNotFoundError:
         logging.error("ffmpeg command not found")
         return False  # ffmpeg command not found
-
-def get_ffmpeg_version():
-    """Get the installed FFmpeg version."""
-    try:
-        result = subprocess.run(["ffmpeg", "-version"], 
-                               stdout=subprocess.PIPE, 
-                               stderr=subprocess.PIPE,
-                               universal_newlines=True)
-        if result.returncode == 0:
-            # Extract version from the first line
-            first_line = result.stdout.split('\n')[0]
-            return first_line
-        return None
-    except Exception as e:
-        logging.error(f"Error getting FFmpeg version: {e}")
-        return None
 
 def get_free_disk_space(path):
     """Get free disk space in bytes."""

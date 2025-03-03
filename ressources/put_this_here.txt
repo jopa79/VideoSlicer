@@ -1,0 +1,7 @@
+VideoSlicer/
+└── VideoSlicer/
+    └── resources/
+        ├── icon.ico         # Application icon
+        ├── light_mode.png   # Light mode icon
+        ├── dark_mode.png    # Dark mode icon
+        └── logo.png         # Application logo
